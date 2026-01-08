@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADA Media Integrity - Mobile Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .server-input {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .server-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .server-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .server-input small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #f0f4ff;
+            border-color: #667eea;
+            border-style: solid;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-name {
+            text-align: center;
+            color: #28a745;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .mode-selector {
+            margin: 20px 0;
+        }
+
+        .mode-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .mode-btn:hover {
+            background: #f8f9ff;
+        }
+
+        .mode-btn.selected {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .mode-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .mode-btn.selected .mode-info {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .result.authentic {
+            background: #d4edda;
+            border: 3px solid #28a745;
+        }
+
+        .result.synthetic {
+            background: #f8d7da;
+            border: 3px solid #dc3545;
+        }
+
+        .result.suspicious {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+        }
+
+        .result h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .result-item {
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+        }
+
+        .result-item strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .result-item .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .reasons {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+        }
+
+        .reasons ul {
+            margin: 10px 0 0 20px;
+        }
+
+        .reasons li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ ADA Media Integrity</h1>
+        <p class="subtitle">AI-Powered Deepfake & Liveness Detection</p>
+
+        <!-- Server URL Input -->
+        <div class="server-input">
+            <label>🌐 API Server URL</label>
+            <input
+                type="text"
+                id="serverUrl"
+                placeholder="http://localhost:8000 or https://your-server.com"
+                value="http://localhost:8000"
+            >
+            <small>Enter your API server URL (provided by your administrator)</small>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 18px; color: #667eea; font-weight: bold;">
+                Tap to Upload Video/Audio
+            </div>
+            <div style="font-size: 14px; color: #999; margin-top: 8px;">
+                Supports: MP4, AVI, MOV, WAV, MP3
+            </div>
+        </div>
+
+        <input type="file" id="fileInput" accept="video/*,audio/*" onchange="fileSelected(this)">
+
+        <div id="fileName" class="file-name"></div>
+
+        <!-- Mode Selection -->
+        <div class="mode-selector">
+            <button class="mode-btn selected" data-mode="quick" onclick="selectMode('quick')">
+                ⚡ Quick Mode
+                <div class="mode-info">Fast analysis (~15 seconds)</div>
+            </button>
+            <button class="mode-btn" data-mode="hybrid" onclick="selectMode('hybrid')">
+                🛡️ Hybrid Mode (Recommended)
+                <div class="mode-info">Complete analysis (~45 seconds)</div>
+            </button>
+            <button class="mode-btn" data-mode="thorough" onclick="selectMode('thorough')">
+                🔍 Thorough Mode
+                <div class="mode-info">Maximum security (~90 seconds)</div>
+            </button>
+        </div>
+
+        <!-- Analyze Button -->
+        <button class="analyze-btn" onclick="analyzeFile()" id="analyzeBtn" disabled>
+            🔍 Analyze Now
+        </button>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: #667eea; font-size: 18px; font-weight: 600;">Analyzing...</p>
+            <p style="color: #666; margin-top: 10px;">This may take <span id="estimatedTime">15-45</span> seconds</p>
+        </div>
+
+        <!-- Results -->
+        <div class="result" id="result">
+            <div id="resultContent"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🔒 Secure • 🚀 Fast • 🎯 Accurate</p>
+            <p style="margin-top: 5px;">Powered by ADA Media Integrity v2.0</p>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let selectedMode = 'quick';
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                selectedFile = e.dataTransfer.files[0];
+                showFileName(selectedFile.name);
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        });
+
+        function fileSelected(input) {
+            if (input.files.length > 0) {
+                selectedFile = input.files[0];
+                showFileName(selectedFile.name);
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        function showFileName(name) {
+            const maxLength = 30;
+            const displayName = name.length > maxLength ?
+                name.substring(0, maxLength) + '...' : name;
+            document.getElementById('fileName').textContent = '✓ ' + displayName;
+        }
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.mode-btn').classList.add('selected');
+
+            // Update estimated time
+            const times = {
+                'quick': '15-25',
+                'hybrid': '45-60',
+                'thorough': '90-120'
+            };
+            document.getElementById('estimatedTime').textContent = times[mode];
+        }
+
+        async function analyzeFile() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            if (!serverUrl) {
+                alert('Please enter the API server URL');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('mode', selectedMode);
+
+            try {
+                const apiUrl = `${serverUrl}/analyze/upload/hybrid?mode=${selectedMode}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+
+                // Show result
+                displayResult(result);
+
+                // Enable button for next test
+                document.getElementById('analyzeBtn').disabled = false;
+
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h2>❌ Error</h2>
+                    <p style="margin: 15px 0;"><strong>Could not connect to server</strong></p>
+                    <p style="margin: 10px 0;">${error.message}</p>
+                    <p style="margin-top: 20px; font-size: 14px;">
+                        <strong>Troubleshooting:</strong><br>
+                        1. Check if server is running<br>
+                        2. Verify the server URL is correct<br>
+                        3. Make sure server is accessible from your network<br>
+                        4. Check your internet connection
+                    </p>
+                `;
+
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        function displayResult(result) {
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+
+            resultDiv.className = 'result ' + result.final_verdict;
+            resultDiv.style.display = 'block';
+
+            const emoji = result.is_authentic ? '✅' : '❌';
+            const verdictText = result.final_verdict.toUpperCase().replace('_', ' ');
+            const riskColor = result.risk_score < 20 ? '#28a745' :
+                             result.risk_score < 50 ? '#ffc107' : '#dc3545';
+
+            let html = `
+                <h2>${emoji} ${verdictText}</h2>
+
+                <div class="result-item">
+                    <strong>Is Authentic</strong>
+                    <div class="value">${result.is_authentic ? 'Yes ✓' : 'No ✗'}</div>
+                </div>
+
+                <div class="result-item">
+                    <strong>Confidence Score</strong>
+                    <div class="value">${(result.confidence * 100).toFixed(1)}%</div>
+                </div>
+
+                <div class="result-item">
+                    <strong>Risk Score</strong>
+                    <div class="value" style="color: ${riskColor}">
+                        ${result.risk_score.toFixed(1)}/100
+                    </div>
+                </div>
+            `;
+
+            // Liveness result
+            if (result.liveness_result) {
+                html += `
+                    <div class="result-item">
+                        <strong>👁️ Liveness Detection</strong>
+                        <div class="value">
+                            ${result.liveness_result.is_live ? 'Live ✓' : 'Failed ✗'}
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px;">
+                            Pass Rate: ${(result.liveness_result.pass_rate * 100).toFixed(0)}%
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Deepfake result
+            if (result.deepfake_result) {
+                html += `
+                    <div class="result-item">
+                        <strong>🎭 Deepfake Detection</strong>
+                        <div class="value">
+                            ${result.deepfake_result.is_fake ? 'Detected ✗' : 'Not Detected ✓'}
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px;">
+                            Frames Analyzed: ${result.deepfake_result.frames_analyzed || 0}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Voice result
+            if (result.voice_result) {
+                html += `
+                    <div class="result-item">
+                        <strong>🎤 Voice Clone Detection</strong>
+                        <div class="value">
+                            ${result.voice_result.is_clone ? 'Detected ✗' : 'Not Detected ✓'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Reasons
+            if (result.reasons && result.reasons.length > 0) {
+                html += `
+                    <div class="reasons">
+                        <strong>📋 Analysis Details:</strong>
+                        <ul>
+                            ${result.reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Processing time
+            html += `
+                <div style="margin-top: 20px; text-align: center; color: #666; font-size: 14px;">
+                    ⏱️ Processing Time: ${result.processing_time.toFixed(1)}s
+                </div>
+            `;
+
+            resultContent.innerHTML = html;
+        }
+
+        // Check server on load
+        window.addEventListener('load', async () => {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            try {
+                const response = await fetch(`${serverUrl}/health`);
+                if (response.ok) {
+                    console.log('✓ Server is reachable');
+                }
+            } catch (error) {
+                console.warn('⚠️ Server not reachable. Make sure to enter correct URL.');
+            }
+        });
+    </script>
+</body>
+</html>
