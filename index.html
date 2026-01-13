@@ -612,6 +612,12 @@
             alertEl.style.display = 'block';
         }
 
+        function isLocalhostHostname(hostname) {
+            return hostname === 'localhost'
+                || hostname === '127.0.0.1'
+                || hostname === '::1';
+        }
+
         function getServerUrl(options = {}) {
             const { showAlert = true } = options;
             const rawValue = document.getElementById('serverUrl').value.trim();
@@ -638,6 +644,13 @@
             if (window.location.protocol === 'https:' && parsedUrl.protocol === 'http:') {
                 if (showAlert) {
                     setServerAlert('This page is served over HTTPS, so the API URL must also be HTTPS. HTTP URLs will be blocked by the browser.', 'error');
+                }
+                return null;
+            }
+
+            if (window.location.protocol === 'https:' && isLocalhostHostname(parsedUrl.hostname)) {
+                if (showAlert) {
+                    setServerAlert('GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally instead.', 'error');
                 }
                 return null;
             }
@@ -779,6 +792,15 @@
                 setRealtimeStatus('Error', 'error');
                 const fallbackMessage = `Real-time start failed: ${error.message}`;
                 const isMixedContent = window.location.protocol === 'https:' && serverUrl.startsWith('http://');
+                const parsedUrl = new URL(serverUrl);
+                const isLocalhost = isLocalhostHostname(parsedUrl.hostname);
+                const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
+                const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
+                const isNetworkError = error && error.name === 'TypeError';
+                const message = isMixedContent
+                    ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
+                    : isNetworkError && isLocalhost && window.location.protocol === 'https:'
+                        ? 'Real-time start failed because GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally.'
                 const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
                 const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
                 const message = isMixedContent
@@ -1069,6 +1091,11 @@
 
             if (window.location.protocol === 'https:' && serverUrl.startsWith('http://')) {
                 setServerAlert('GitHub Pages runs over HTTPS, so http://localhost will not work here. Use an HTTPS API URL (e.g., ngrok) or run the UI locally.', 'warning');
+                return;
+            }
+            const parsedUrl = new URL(serverUrl);
+            if (window.location.protocol === 'https:' && isLocalhostHostname(parsedUrl.hostname)) {
+                setServerAlert('GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally instead.', 'warning');
                 return;
             }
             try {
