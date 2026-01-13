@@ -1,21 +1,44 @@
-# Web UI Deployment Guide
-## Share Your Mobile Link via GitHub Pages or Hugging Face
+# ADA Media Integrity - Mobile UI
 
-This is a standalone HTML file that anyone can access from their phone's browser!
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ghifiardi/ada-mobile-ui)
+
+Real-time Deepfake & Voice Fraud Detection for Fintech
+
+**Live Demo:** https://ghifiardi.github.io/ada-mobile-ui/
 
 ---
 
 ## 🎯 What This Is
 
-A **single HTML file** (`index.html`) that provides a mobile-friendly web interface for your ADA Media Integrity system.
+A complete mobile-friendly web application for deepfake and voice clone detection:
 
-**Features:**
+**Frontend (GitHub Pages):**
 - ✅ Works on any phone (iOS/Android)
 - ✅ No installation needed
-- ✅ Just open the link in browser
 - ✅ Real-time camera + microphone streaming
 - ✅ Batch upload for compliance archives
-- ✅ Connects to your API server
+
+**Backend (Cloud Deployable):**
+- ✅ Mock API server for testing
+- ✅ One-click cloud deployment
+- ✅ 24/7 availability
+- ✅ No local setup required
+
+---
+
+## 🚀 Quick Start (5 minutes)
+
+### Deploy API Server to Cloud (Recommended)
+
+1. **Click to deploy:** [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ghifiardi/ada-mobile-ui)
+
+2. **Get your API URL:** `https://ada-mock-api.onrender.com`
+
+3. **Open Mobile UI:** https://ghifiardi.github.io/ada-mobile-ui/
+
+4. **Test it:** Enter your API URL and start scanning!
+
+**See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions and alternative platforms.**
 
 ---
 
