@@ -458,7 +458,7 @@
                 placeholder="http://localhost:8000 or https://your-server.com"
                 value="http://localhost:8000"
             >
-            <small>Enter your API server URL (provided by your administrator)</small>
+            <small>Enter your API server URL (provided by your administrator). GitHub Pages requires an HTTPS API URL.</small>
             <div id="serverAlert" class="inline-alert" role="alert" aria-live="polite"></div>
         </div>
 
@@ -1057,6 +1057,11 @@
         window.addEventListener('load', async () => {
             const serverUrl = getServerUrl({ showAlert: false });
             if (!serverUrl) {
+                return;
+            }
+
+            if (window.location.protocol === 'https:' && serverUrl.startsWith('http://')) {
+                setServerAlert('GitHub Pages runs over HTTPS, so http://localhost will not work here. Use an HTTPS API URL (e.g., ngrok) or run the UI locally.', 'warning');
                 return;
             }
             try {
