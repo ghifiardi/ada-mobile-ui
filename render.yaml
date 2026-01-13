@@ -6,6 +6,7 @@ services:
     repo: https://github.com/ghifiardi/ada-mobile-ui
     region: oregon
     plan: free
+    rootDir: .
     healthCheckPath: /health
     envVars:
       - key: PORT
