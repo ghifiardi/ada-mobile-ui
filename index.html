@@ -716,6 +716,7 @@
         async function startRealtime() {
             const serverUrl = getServerUrl();
             if (!serverUrl) {
+                setRealtimeStatus('Idle', 'idle');
                 return;
             }
 
@@ -778,9 +779,15 @@
                 setRealtimeStatus('Error', 'error');
                 const fallbackMessage = `Real-time start failed: ${error.message}`;
                 const isMixedContent = window.location.protocol === 'https:' && serverUrl.startsWith('http://');
+                const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
+                const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
                 const message = isMixedContent
                     ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
-                    : fallbackMessage;
+                    : isPermissionError
+                        ? 'Camera/microphone access was blocked. Please allow permissions in your browser and try again.'
+                        : isDeviceError
+                            ? 'No camera or microphone was detected. Connect a device or switch to a compatible stream type.'
+                            : fallbackMessage;
                 setServerAlert(message, 'error');
                 stopRealtime();
             }
