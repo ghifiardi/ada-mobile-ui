@@ -801,6 +801,10 @@
                     ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
                     : isNetworkError && isLocalhost && window.location.protocol === 'https:'
                         ? 'Real-time start failed because GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally.'
+                const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
+                const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
+                const message = isMixedContent
+                    ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
                     : isPermissionError
                         ? 'Camera/microphone access was blocked. Please allow permissions in your browser and try again.'
                         : isDeviceError
