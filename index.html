@@ -648,6 +648,13 @@
                 return null;
             }
 
+            if (window.location.protocol === 'https:' && isLocalhostHostname(parsedUrl.hostname)) {
+                if (showAlert) {
+                    setServerAlert('GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally instead.', 'error');
+                }
+                return null;
+            }
+
             if (showAlert) {
                 setServerAlert('');
             }
