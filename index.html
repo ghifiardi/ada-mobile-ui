@@ -69,6 +69,29 @@
             color: #666;
         }
 
+        .inline-alert {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .inline-alert.error {
+            display: block;
+            background: #f8d7da;
+            border: 1px solid #f1aeb5;
+            color: #842029;
+        }
+
+        .inline-alert.warning {
+            display: block;
+            background: #fff3cd;
+            border: 1px solid #ffecb5;
+            color: #664d03;
+        }
+
         .view-toggle {
             display: flex;
             gap: 12px;
@@ -436,6 +459,7 @@
                 value="http://localhost:8000"
             >
             <small>Enter your API server URL (provided by your administrator)</small>
+            <div id="serverAlert" class="inline-alert" role="alert" aria-live="polite"></div>
         </div>
 
         <div class="view-toggle">
@@ -574,8 +598,60 @@
         let realtimeSessionId = null;
         let chunkIntervalId = null;
 
+        function setServerAlert(message, tone = 'warning') {
+            const alertEl = document.getElementById('serverAlert');
+            if (!message) {
+                alertEl.textContent = '';
+                alertEl.className = 'inline-alert';
+                alertEl.style.display = 'none';
+                return;
+            }
+
+            alertEl.textContent = message;
+            alertEl.className = `inline-alert ${tone}`;
+            alertEl.style.display = 'block';
+        }
+
+        function getServerUrl(options = {}) {
+            const { showAlert = true } = options;
+            const rawValue = document.getElementById('serverUrl').value.trim();
+
+            if (!rawValue) {
+                if (showAlert) {
+                    setServerAlert('Please enter the API server URL before starting a scan.', 'error');
+                }
+                return null;
+            }
+
+            const normalized = rawValue.replace(/\/+$/, '');
+            let parsedUrl;
+
+            try {
+                parsedUrl = new URL(normalized);
+            } catch (error) {
+                if (showAlert) {
+                    setServerAlert('Server URL must include http:// or https:// (example: https://api.yourdomain.com).', 'error');
+                }
+                return null;
+            }
+
+            if (window.location.protocol === 'https:' && parsedUrl.protocol === 'http:') {
+                if (showAlert) {
+                    setServerAlert('This page is served over HTTPS, so the API URL must also be HTTPS. HTTP URLs will be blocked by the browser.', 'error');
+                }
+                return null;
+            }
+
+            if (showAlert) {
+                setServerAlert('');
+            }
+
+            return normalized;
+        }
+
         // Drag and drop
         const uploadArea = document.getElementById('uploadArea');
+        document.getElementById('serverUrl').addEventListener('input', () => setServerAlert(''));
 
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -638,9 +714,8 @@
         }
 
         async function startRealtime() {
-            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const serverUrl = getServerUrl();
             if (!serverUrl) {
-                alert('Please enter the API server URL');
                 return;
             }
 
@@ -701,7 +776,12 @@
                 }, 3000);
             } catch (error) {
                 setRealtimeStatus('Error', 'error');
-                alert(`Real-time start failed: ${error.message}`);
+                const fallbackMessage = `Real-time start failed: ${error.message}`;
+                const isMixedContent = window.location.protocol === 'https:' && serverUrl.startsWith('http://');
+                const message = isMixedContent
+                    ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
+                    : fallbackMessage;
+                setServerAlert(message, 'error');
                 stopRealtime();
             }
         }
@@ -730,7 +810,7 @@
         }
 
         async function stopRealtime() {
-            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const serverUrl = getServerUrl({ showAlert: false });
 
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
@@ -816,9 +896,8 @@
                 return;
             }
 
-            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const serverUrl = getServerUrl();
             if (!serverUrl) {
-                alert('Please enter the API server URL');
                 return;
             }
 
@@ -976,7 +1055,10 @@
 
         // Check server on load
         window.addEventListener('load', async () => {
-            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const serverUrl = getServerUrl({ showAlert: false });
+            if (!serverUrl) {
+                return;
+            }
             try {
                 const response = await fetch(`${serverUrl}/health`);
                 if (response.ok) {
