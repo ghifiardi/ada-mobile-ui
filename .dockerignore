@@ -1,0 +1,10 @@
+.git
+.gitignore
+.agents
+*.log
+*.md
+README.md
+ui_server.log
+__pycache__
+*.pyc
+.DS_Store

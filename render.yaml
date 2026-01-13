@@ -1,0 +1,12 @@
+# Render.com deployment configuration
+services:
+  - type: web
+    name: ada-mock-api
+    runtime: docker
+    repo: https://github.com/ghifiardi/ada-mobile-ui
+    region: oregon
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
