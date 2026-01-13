@@ -797,19 +797,22 @@
                 const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
                 const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
                 const isNetworkError = error && error.name === 'TypeError';
-                const message = isMixedContent
-                    ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
-                    : isNetworkError && isLocalhost && window.location.protocol === 'https:'
-                        ? 'Real-time start failed because GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally.'
-                const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
-                const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
-                const message = isMixedContent
-                    ? 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.'
-                    : isPermissionError
-                        ? 'Camera/microphone access was blocked. Please allow permissions in your browser and try again.'
-                        : isDeviceError
-                            ? 'No camera or microphone was detected. Connect a device or switch to a compatible stream type.'
-                            : fallbackMessage;
+
+                let message;
+                if (isMixedContent) {
+                    message = 'Real-time start failed because the API URL is HTTP on an HTTPS page. Please switch to an HTTPS API endpoint.';
+                } else if (isNetworkError && isLocalhost && window.location.protocol === 'https:') {
+                    message = 'Real-time start failed because GitHub Pages cannot reach localhost. Use an HTTPS tunnel (ngrok) or run the UI locally.';
+                } else if (isPermissionError) {
+                    message = 'Camera/microphone access was blocked. Please allow permissions in your browser and try again.';
+                } else if (isDeviceError) {
+                    message = 'No camera or microphone was detected. Connect a device or switch to a compatible stream type.';
+                } else if (isNetworkError) {
+                    message = `Real-time start failed: Failed to fetch. Please verify the server URL is correct and the server is running.`;
+                } else {
+                    message = fallbackMessage;
+                }
+
                 setServerAlert(message, 'error');
                 stopRealtime();
             }
