@@ -69,6 +69,151 @@
             color: #666;
         }
 
+        .view-toggle {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0 10px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            background: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .section-card {
+            border: 1px solid #e6e9ff;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .realtime-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 16px;
+        }
+
+        .preview {
+            width: 100%;
+            background: #111;
+            border-radius: 12px;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .preview video {
+            width: 100%;
+            border-radius: 12px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e9f5ff;
+            color: #0b5ed7;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pill.idle {
+            background: #f1f3f5;
+            color: #6c757d;
+        }
+
+        .status-pill.live {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-pill.error {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .realtime-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .realtime-controls button,
+        .realtime-controls select {
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            background: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .realtime-controls button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+        }
+
+        .realtime-metrics {
+            display: grid;
+            gap: 12px;
+        }
+
+        .metric-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #e5e7ff;
+        }
+
+        .metric-card h4 {
+            font-size: 13px;
+            color: #667eea;
+            margin-bottom: 6px;
+        }
+
+        .metric-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .metric-card small {
+            color: #666;
+            font-size: 12px;
+        }
+
         .upload-area {
             border: 3px dashed #667eea;
             border-radius: 15px;
@@ -268,12 +413,18 @@
                 font-size: 24px;
             }
         }
+
+        @media (max-width: 720px) {
+            .realtime-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🛡️ ADA Media Integrity</h1>
-        <p class="subtitle">AI-Powered Deepfake & Liveness Detection</p>
+        <p class="subtitle">Real-time Deepfake & Voice Fraud Detection for Fintech</p>
 
         <!-- Server URL Input -->
         <div class="server-input">
@@ -287,41 +438,113 @@
             <small>Enter your API server URL (provided by your administrator)</small>
         </div>
 
-        <!-- Upload Area -->
-        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-            <div style="font-size: 18px; color: #667eea; font-weight: bold;">
-                Tap to Upload Video/Audio
+        <div class="view-toggle">
+            <button id="realtimeTab" class="active" type="button" onclick="toggleView('realtime')">🎥 Real-time</button>
+            <button id="uploadTab" type="button" onclick="toggleView('upload')">📁 Upload</button>
+        </div>
+
+        <div id="realtimeSection" class="section-card">
+            <div class="section-title">Real-time Deepfake & Voice Fraud</div>
+            <div class="section-subtitle">
+                Stream live camera + microphone to continuously detect synthetic faces and voice clones.
             </div>
-            <div style="font-size: 14px; color: #999; margin-top: 8px;">
-                Supports: MP4, AVI, MOV, WAV, MP3
+
+            <div class="realtime-grid">
+                <div>
+                    <div class="preview" id="previewPlaceholder">Camera preview will appear here</div>
+                    <video id="videoPreview" autoplay muted playsinline style="display: none;"></video>
+                </div>
+
+                <div class="realtime-controls">
+                    <label for="streamType"><strong>Stream Type</strong></label>
+                    <select id="streamType">
+                        <option value="video_audio">Video + Audio (recommended)</option>
+                        <option value="video_only">Video only</option>
+                        <option value="audio_only">Audio only</option>
+                    </select>
+
+                    <label for="realtimeMode"><strong>Detection Mode</strong></label>
+                    <select id="realtimeMode">
+                        <option value="realtime_low_latency">Low Latency</option>
+                        <option value="realtime_balanced" selected>Balanced</option>
+                        <option value="realtime_high_accuracy">High Accuracy</option>
+                    </select>
+
+                    <button class="primary" id="startRealtimeBtn" type="button" onclick="startRealtime()">
+                        ▶️ Start Real-time Scan
+                    </button>
+                    <button id="stopRealtimeBtn" type="button" onclick="stopRealtime()" disabled>
+                        ⏹️ Stop Scan
+                    </button>
+
+                    <div>
+                        <span class="status-pill idle" id="realtimeStatus">● Idle</span>
+                    </div>
+                    <small>Designed for fintech flows: KYC onboarding, live video calls, and transaction approvals.</small>
+                </div>
+            </div>
+
+            <div class="realtime-metrics" style="margin-top: 16px;">
+                <div class="metric-card">
+                    <h4>Live Verdict</h4>
+                    <div class="value" id="liveVerdict">Waiting for stream...</div>
+                    <small id="liveVerdictDetail">Start a scan to see real-time risk scores.</small>
+                </div>
+                <div class="metric-card">
+                    <h4>Voice Clone Risk</h4>
+                    <div class="value" id="voiceRisk">--</div>
+                    <small id="voiceRiskDetail">Streaming audio required.</small>
+                </div>
+                <div class="metric-card">
+                    <h4>Deepfake Risk</h4>
+                    <div class="value" id="videoRisk">--</div>
+                    <small id="videoRiskDetail">Streaming video required.</small>
+                </div>
             </div>
         </div>
 
-        <input type="file" id="fileInput" accept="video/*,audio/*" onchange="fileSelected(this)">
+        <div id="uploadSection" class="section-card" style="display: none;">
+            <div class="section-title">Upload Media for Batch Analysis</div>
+            <div class="section-subtitle">
+                Upload files when live capture is not available or you need a compliance archive.
+            </div>
 
-        <div id="fileName" class="file-name"></div>
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+                <div style="font-size: 18px; color: #667eea; font-weight: bold;">
+                    Tap to Upload Video/Audio
+                </div>
+                <div style="font-size: 14px; color: #999; margin-top: 8px;">
+                    Supports: MP4, AVI, MOV, WAV, MP3
+                </div>
+            </div>
 
-        <!-- Mode Selection -->
-        <div class="mode-selector">
-            <button class="mode-btn selected" data-mode="quick" onclick="selectMode('quick')">
-                ⚡ Quick Mode
-                <div class="mode-info">Fast analysis (~15 seconds)</div>
-            </button>
-            <button class="mode-btn" data-mode="hybrid" onclick="selectMode('hybrid')">
-                🛡️ Hybrid Mode (Recommended)
-                <div class="mode-info">Complete analysis (~45 seconds)</div>
-            </button>
-            <button class="mode-btn" data-mode="thorough" onclick="selectMode('thorough')">
-                🔍 Thorough Mode
-                <div class="mode-info">Maximum security (~90 seconds)</div>
+            <input type="file" id="fileInput" accept="video/*,audio/*" onchange="fileSelected(this)">
+
+            <div id="fileName" class="file-name"></div>
+
+            <!-- Mode Selection -->
+            <div class="mode-selector">
+                <button class="mode-btn selected" data-mode="quick" onclick="selectMode('quick', event)">
+                    ⚡ Quick Mode
+                    <div class="mode-info">Fast analysis (~15 seconds)</div>
+                </button>
+                <button class="mode-btn" data-mode="hybrid" onclick="selectMode('hybrid', event)">
+                    🛡️ Hybrid Mode (Recommended)
+                    <div class="mode-info">Complete analysis (~45 seconds)</div>
+                </button>
+                <button class="mode-btn" data-mode="thorough" onclick="selectMode('thorough', event)">
+                    🔍 Thorough Mode
+                    <div class="mode-info">Maximum security (~90 seconds)</div>
+                </button>
+            </div>
+
+            <!-- Analyze Button -->
+            <button class="analyze-btn" onclick="analyzeFile()" id="analyzeBtn" disabled>
+                🔍 Analyze Now
             </button>
         </div>
-
-        <!-- Analyze Button -->
-        <button class="analyze-btn" onclick="analyzeFile()" id="analyzeBtn" disabled>
-            🔍 Analyze Now
-        </button>
 
         <!-- Loading State -->
         <div class="loading" id="loading">
@@ -338,13 +561,18 @@
         <!-- Footer -->
         <div class="footer">
             <p>🔒 Secure • 🚀 Fast • 🎯 Accurate</p>
-            <p style="margin-top: 5px;">Powered by ADA Media Integrity v2.0</p>
+            <p style="margin-top: 5px;">Powered by ADA Media Integrity v2.1 Real-time</p>
         </div>
     </div>
 
     <script>
         let selectedFile = null;
         let selectedMode = 'quick';
+        let activeView = 'realtime';
+        let mediaStream = null;
+        let mediaRecorder = null;
+        let realtimeSessionId = null;
+        let chunkIntervalId = null;
 
         // Drag and drop
         const uploadArea = document.getElementById('uploadArea');
@@ -383,12 +611,14 @@
             document.getElementById('fileName').textContent = '✓ ' + displayName;
         }
 
-        function selectMode(mode) {
+        function selectMode(mode, event) {
             selectedMode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            event.target.closest('.mode-btn').classList.add('selected');
+            if (event && event.target) {
+                event.target.closest('.mode-btn').classList.add('selected');
+            }
 
             // Update estimated time
             const times = {
@@ -397,6 +627,187 @@
                 'thorough': '90-120'
             };
             document.getElementById('estimatedTime').textContent = times[mode];
+        }
+
+        function toggleView(view) {
+            activeView = view;
+            document.getElementById('realtimeSection').style.display = view === 'realtime' ? 'block' : 'none';
+            document.getElementById('uploadSection').style.display = view === 'upload' ? 'block' : 'none';
+            document.getElementById('realtimeTab').classList.toggle('active', view === 'realtime');
+            document.getElementById('uploadTab').classList.toggle('active', view === 'upload');
+        }
+
+        async function startRealtime() {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            if (!serverUrl) {
+                alert('Please enter the API server URL');
+                return;
+            }
+
+            const streamType = document.getElementById('streamType').value;
+            const realtimeMode = document.getElementById('realtimeMode').value;
+            const constraints = {
+                video: streamType !== 'audio_only',
+                audio: streamType !== 'video_only'
+            };
+
+            try {
+                setRealtimeStatus('Connecting...', 'idle');
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                const preview = document.getElementById('videoPreview');
+                const placeholder = document.getElementById('previewPlaceholder');
+                if (constraints.video) {
+                    preview.srcObject = mediaStream;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    placeholder.textContent = 'Audio-only stream active';
+                }
+
+                const startResponse = await fetch(`${serverUrl}/analyze/realtime/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: realtimeMode, stream_type: streamType })
+                });
+
+                if (!startResponse.ok) {
+                    throw new Error(`Server error: ${startResponse.status} ${startResponse.statusText}`);
+                }
+
+                const startData = await startResponse.json();
+                realtimeSessionId = startData.session_id || startData.sessionId || 'local-session';
+
+                const mimeType = constraints.video ? 'video/webm;codecs=vp8,opus' : 'audio/webm;codecs=opus';
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        sendRealtimeChunk(event.data, serverUrl);
+                    }
+                };
+
+                mediaRecorder.start(1500);
+                setRealtimeStatus('Live', 'live');
+                document.getElementById('startRealtimeBtn').disabled = true;
+                document.getElementById('stopRealtimeBtn').disabled = false;
+
+                chunkIntervalId = setInterval(() => {
+                    updateLiveMetrics({
+                        heartbeat: true,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                }, 3000);
+            } catch (error) {
+                setRealtimeStatus('Error', 'error');
+                alert(`Real-time start failed: ${error.message}`);
+                stopRealtime();
+            }
+        }
+
+        async function sendRealtimeChunk(blob, serverUrl) {
+            const formData = new FormData();
+            formData.append('chunk', blob, 'stream.webm');
+            formData.append('session_id', realtimeSessionId || '');
+
+            try {
+                const response = await fetch(`${serverUrl}/analyze/realtime/chunk`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                updateLiveMetrics(data);
+            } catch (error) {
+                setRealtimeStatus('Streaming issue', 'error');
+                console.warn('Streaming error:', error);
+            }
+        }
+
+        async function stopRealtime() {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+            if (chunkIntervalId) {
+                clearInterval(chunkIntervalId);
+            }
+
+            mediaStream = null;
+            mediaRecorder = null;
+
+            document.getElementById('videoPreview').style.display = 'none';
+            const placeholder = document.getElementById('previewPlaceholder');
+            placeholder.style.display = 'flex';
+            placeholder.textContent = 'Camera preview will appear here';
+
+            document.getElementById('startRealtimeBtn').disabled = false;
+            document.getElementById('stopRealtimeBtn').disabled = true;
+            setRealtimeStatus('Idle', 'idle');
+
+            if (serverUrl && realtimeSessionId) {
+                try {
+                    await fetch(`${serverUrl}/analyze/realtime/stop`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ session_id: realtimeSessionId })
+                    });
+                } catch (error) {
+                    console.warn('Unable to finalize real-time session:', error);
+                }
+            }
+
+            realtimeSessionId = null;
+        }
+
+        function updateLiveMetrics(data) {
+            const verdict = data.final_verdict || data.verdict || 'Analyzing...';
+            const confidence = data.confidence !== undefined ? `${(data.confidence * 100).toFixed(1)}%` : '--';
+            const risk = data.risk_score !== undefined ? `${data.risk_score.toFixed(1)}/100` : '--';
+
+            document.getElementById('liveVerdict').textContent = verdict.toString().replace('_', ' ').toUpperCase();
+            document.getElementById('liveVerdictDetail').textContent = data.timestamp
+                ? `Last update: ${data.timestamp}`
+                : `Confidence ${confidence}, Risk ${risk}`;
+
+            if (data.voice_result) {
+                const voiceRisk = data.voice_result.risk_score !== undefined
+                    ? `${data.voice_result.risk_score.toFixed(1)}/100`
+                    : data.voice_result.is_clone
+                        ? 'High'
+                        : 'Low';
+                document.getElementById('voiceRisk').textContent = voiceRisk;
+                document.getElementById('voiceRiskDetail').textContent = data.voice_result.is_clone
+                    ? 'Voice clone detected'
+                    : 'Voice appears genuine';
+            }
+
+            if (data.deepfake_result) {
+                const videoRisk = data.deepfake_result.risk_score !== undefined
+                    ? `${data.deepfake_result.risk_score.toFixed(1)}/100`
+                    : data.deepfake_result.is_fake
+                        ? 'High'
+                        : 'Low';
+                document.getElementById('videoRisk').textContent = videoRisk;
+                document.getElementById('videoRiskDetail').textContent = data.deepfake_result.is_fake
+                    ? 'Synthetic face detected'
+                    : 'Face appears authentic';
+            }
+        }
+
+        function setRealtimeStatus(text, status) {
+            const statusEl = document.getElementById('realtimeStatus');
+            statusEl.textContent = `● ${text}`;
+            statusEl.className = `status-pill ${status}`;
         }
 
         async function analyzeFile() {

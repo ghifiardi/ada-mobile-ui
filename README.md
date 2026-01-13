@@ -13,7 +13,8 @@ A **single HTML file** (`index.html`) that provides a mobile-friendly web interf
 - ✅ Works on any phone (iOS/Android)
 - ✅ No installation needed
 - ✅ Just open the link in browser
-- ✅ Beautiful mobile UI
+- ✅ Real-time camera + microphone streaming
+- ✅ Batch upload for compliance archives
 - ✅ Connects to your API server
 
 ---
@@ -133,10 +134,10 @@ or
 https://your-ngrok-url.ngrok.io
 ```
 
-### **Step 4: They Upload & Test**
-- Upload video from phone
-- Select mode
-- Get results!
+### **Step 4: They Run a Real-time Scan or Upload**
+- Start a real-time scan for live KYC or transaction approvals
+- Or upload video/audio for batch analysis
+- Get results instantly
 
 ---
 
@@ -144,7 +145,7 @@ https://your-ngrok-url.ngrok.io
 
 ### **Default Server URL**
 
-Edit `index.html` line 117:
+Edit the default value in `index.html`:
 ```javascript
 value="http://localhost:8000"  // Change to your default server
 ```
@@ -163,10 +164,32 @@ Edit these lines in `index.html`:
 <h1>🛡️ ADA Media Integrity</h1>
 
 <!-- Subtitle -->
-<p class="subtitle">AI-Powered Deepfake & Liveness Detection</p>
+<p class="subtitle">Real-time Deepfake & Voice Fraud Detection for Fintech</p>
 
 <!-- Footer -->
-<p>Powered by ADA Media Integrity v2.0</p>
+<p>Powered by ADA Media Integrity v2.1 Real-time</p>
+```
+
+### **Real-time API Endpoints**
+
+The real-time experience expects your backend to expose streaming endpoints:
+
+```
+POST /analyze/realtime/start   (returns { session_id })
+POST /analyze/realtime/chunk   (accepts multipart chunk + session_id)
+POST /analyze/realtime/stop    (finalize session)
+```
+
+Each chunk response can return live verdicts such as:
+
+```json
+{
+  "final_verdict": "suspicious",
+  "confidence": 0.86,
+  "risk_score": 41.2,
+  "deepfake_result": { "is_fake": false, "risk_score": 18.3 },
+  "voice_result": { "is_clone": false, "risk_score": 9.5 }
+}
 ```
 
 ---
@@ -194,7 +217,7 @@ cd ..
 
 1. Open: `https://your-username.github.io/ada-mobile-ui/`
 2. Enter server URL you provided
-3. Upload video
+3. Start a real-time scan or upload media
 4. Get results!
 
 ---
