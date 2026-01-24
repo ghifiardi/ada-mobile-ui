@@ -126,7 +126,7 @@ Edit `index.html` line 459:
 
 ```html
 <!-- Change from: -->
-value="http://localhost:8000"
+value="https://ada-mock-api.onrender.com"
 
 <!-- To your cloud URL: -->
 value="https://ada-mock-api.onrender.com"

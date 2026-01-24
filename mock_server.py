@@ -5,8 +5,8 @@ This server provides the required endpoints for testing the mobile UI without fu
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+import asyncio
 import uuid
 import time
 import random
@@ -17,7 +17,7 @@ app = FastAPI(title="ADA Media Integrity Mock API", version="2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -120,7 +120,7 @@ async def analyze_upload(
     # Simulate processing time
     await file.read()
     processing_time = random.uniform(2, 5)
-    time.sleep(min(processing_time, 2))  # Cap at 2 seconds for demo
+    await asyncio.sleep(min(processing_time, 2))  # Cap at 2 seconds for demo
 
     # Mock analysis results
     is_authentic = random.random() > 0.4  # 60% chance of authentic

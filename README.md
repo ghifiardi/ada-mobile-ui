@@ -49,10 +49,7 @@ A complete mobile-friendly web application for deepfake and voice clone detectio
 #### Step 1: Create GitHub Repository
 
 ```bash
-# Navigate to web-deploy folder
-cd web-deploy
-
-# Initialize git
+# Initialize git in the repo root
 git init
 git add index.html README.md
 git commit -m "Add ADA mobile web UI"
@@ -100,9 +97,9 @@ https://YOUR-USERNAME.github.io/ada-mobile-ui/
 git clone https://huggingface.co/spaces/YOUR-USERNAME/ada-mobile-ui
 cd ada-mobile-ui
 
-# Copy files
-cp ../web-deploy/index.html .
-cp ../web-deploy/README.md .
+# Copy files from this repo
+cp /path/to/ada-mobile-ui/index.html .
+cp /path/to/ada-mobile-ui/README.md .
 
 # Commit and push
 git add .
@@ -130,7 +127,7 @@ https://huggingface.co/spaces/YOUR-USERNAME/ada-mobile-ui
 npm install -g netlify-cli
 
 # Deploy
-cd web-deploy
+cd /path/to/ada-mobile-ui
 netlify deploy --prod
 ```
 
@@ -170,7 +167,7 @@ https://your-ngrok-url.ngrok.io
 
 Edit the default value in `index.html`:
 ```javascript
-value="http://localhost:8000"  // Change to your default server
+value="https://ada-mock-api.onrender.com"  // Change to your default server
 ```
 
 Change to:
@@ -223,17 +220,16 @@ Each chunk response can return live verdicts such as:
 
 ```bash
 # 1. Deploy web UI to GitHub Pages
-cd web-deploy
 git init
-git add .
+git add index.html README.md
 git commit -m "Deploy"
 git push
 
 # 2. Enable GitHub Pages in settings
 
 # 3. Start your API server
-cd ..
-./setup-mobile-access.sh
+pip install -r requirements.txt
+python mock_server.py
 ```
 
 ### **User Experience (Every Time)**
@@ -289,7 +285,7 @@ cd ..
 
 ### **Option B: Password Protected**
 
-Add to your API server (in `enhanced_main.py`):
+Add to your API server (in `mock_server.py`):
 
 ```python
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -354,10 +350,10 @@ Edit the mode buttons:
 
 ```bash
 # Open in browser
-open web-deploy/index.html
+open index.html
 
 # Or use simple server
-cd web-deploy
+cd /path/to/ada-mobile-ui
 python -m http.server 8080
 # Open: http://localhost:8080
 ```
@@ -384,7 +380,7 @@ python -m http.server 8080
 ### **GitHub Pages**
 
 ```bash
-cd "Banking Deep Fake and Voice Cloning/web-deploy"
+cd /path/to/ada-mobile-ui
 
 # Initialize and deploy
 git init
@@ -404,7 +400,7 @@ git push -u origin main
 # Then:
 git clone https://huggingface.co/spaces/YOUR-USERNAME/ada-mobile-ui
 cd ada-mobile-ui
-cp ../web-deploy/index.html .
+cp /path/to/ada-mobile-ui/index.html .
 git add .
 git commit -m "Deploy"
 git push

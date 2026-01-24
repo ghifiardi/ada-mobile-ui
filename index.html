@@ -455,8 +455,8 @@
             <input
                 type="text"
                 id="serverUrl"
-                placeholder="https://ada-mobile-ui.onrender.com"
-                value="https://ada-mobile-ui.onrender.com"
+                placeholder="https://ada-mock-api.onrender.com"
+                value="https://ada-mock-api.onrender.com"
             >
             <small>Enter your API server URL (provided by your administrator). GitHub Pages requires an HTTPS API URL.</small>
             <div id="serverAlert" class="inline-alert" role="alert" aria-live="polite"></div>
@@ -662,6 +662,42 @@
             return normalized;
         }
 
+        function getRecorderOptions(streamType) {
+            if (typeof MediaRecorder === 'undefined') {
+                return {
+                    error: 'Real-time streaming is not supported in this browser. Use Upload mode or try a Chromium-based browser.'
+                };
+            }
+
+            const candidates = streamType === 'audio_only'
+                ? [
+                    'audio/webm;codecs=opus',
+                    'audio/webm',
+                    'audio/ogg;codecs=opus',
+                    'audio/mp4'
+                ]
+                : [
+                    'video/webm;codecs=vp9,opus',
+                    'video/webm;codecs=vp8,opus',
+                    'video/webm',
+                    'video/mp4;codecs=h264,aac',
+                    'video/mp4'
+                ];
+
+            if (typeof MediaRecorder.isTypeSupported !== 'function') {
+                return { options: {} };
+            }
+
+            const supportedType = candidates.find((type) => MediaRecorder.isTypeSupported(type));
+            if (!supportedType) {
+                return {
+                    error: 'Real-time streaming is not supported with available codecs. Try another browser or use Upload mode.'
+                };
+            }
+
+            return { options: { mimeType: supportedType } };
+        }
+
         // Drag and drop
         const uploadArea = document.getElementById('uploadArea');
         document.getElementById('serverUrl').addEventListener('input', () => setServerAlert(''));
@@ -734,6 +770,13 @@
             }
 
             const streamType = document.getElementById('streamType').value;
+            const recorderConfig = getRecorderOptions(streamType);
+            if (recorderConfig.error) {
+                setServerAlert(recorderConfig.error, 'error');
+                setRealtimeStatus('Unsupported', 'error');
+                return;
+            }
+
             const realtimeMode = document.getElementById('realtimeMode').value;
             const constraints = {
                 video: streamType !== 'audio_only',
@@ -769,8 +812,10 @@
                 const startData = await startResponse.json();
                 realtimeSessionId = startData.session_id || startData.sessionId || 'local-session';
 
-                const mimeType = constraints.video ? 'video/webm;codecs=vp8,opus' : 'audio/webm;codecs=opus';
-                mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+                const recorderOptions = recorderConfig.options || {};
+                mediaRecorder = Object.keys(recorderOptions).length > 0
+                    ? new MediaRecorder(mediaStream, recorderOptions)
+                    : new MediaRecorder(mediaStream);
                 mediaRecorder.ondataavailable = (event) => {
                     if (event.data && event.data.size > 0) {
                         sendRealtimeChunk(event.data, serverUrl);
@@ -797,6 +842,7 @@
                 const isPermissionError = error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
                 const isDeviceError = error && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError');
                 const isNetworkError = error && error.name === 'TypeError';
+                const isNotSupported = error && error.name === 'NotSupportedError';
 
                 let message;
                 if (isMixedContent) {
@@ -807,6 +853,8 @@
                     message = 'Camera/microphone access was blocked. Please allow permissions in your browser and try again.';
                 } else if (isDeviceError) {
                     message = 'No camera or microphone was detected. Connect a device or switch to a compatible stream type.';
+                } else if (isNotSupported) {
+                    message = 'Real-time streaming is not supported with the current browser or codecs. Try a Chromium-based browser or use Upload mode.';
                 } else if (isNetworkError) {
                     message = `Real-time start failed: Failed to fetch. Please verify the server URL is correct and the server is running.`;
                 } else {
